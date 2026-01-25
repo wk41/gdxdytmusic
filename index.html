@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乐团谱务管理系统</title>
+    
+    <!-- 1. 引入中国国内的 CDN (Staticfile.org) 以确保加载速度 -->
+    <!-- React 核心 -->
+    <script src="https://cdn.staticfile.org/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.staticfile.org/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- Babel 用于解析 JSX -->
+    <script src="https://cdn.staticfile.org/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- Tailwind CSS 用于美化样式 -->
+    <script src="https://cdn.staticfile.org/tailwindcss/3.4.1/browser.js"></script>
+
+    <style>
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- 1. SVG 图标组件 (内建，不依赖外部) ---
+        const Icons = {
+            Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Database: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+            FileText: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>,
+            Music: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
+            Folder: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>,
+            Tag: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><circle cx="7" cy="7" r="2"/></svg>,
+            ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            ChevronUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
+            Alert: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        };
+
+        // --- 2. 工具组件 ---
+        const Badge = ({ children, type = "default", icon: Icon }) => {
+            const styles = {
+                default: "bg-slate-100 text-slate-600 border-slate-200",
+                primary: "bg-indigo-50 text-indigo-700 border-indigo-100",
+                success: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                warning: "bg-amber-50 text-amber-700 border-amber-100",
+                purple:  "bg-purple-50 text-purple-700 border-purple-100",
+                blue:    "bg-blue-50 text-blue-700 border-blue-100",
+            };
+            return (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[type]}`}>
+                    {Icon && <span className="mr-1"><Icon /></span>}
+                    {children}
+                </span>
+            );
+        };
+
+        const Card = ({ children, className = "", onClick }) => (
+            <div 
+                onClick={onClick}
+                className={`bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md hover:border-indigo-200 transition-all duration-200 ${className}`}
+            >
+                {children}
+            </div>
+        );
+
+        // --- 3. 主应用逻辑 ---
+        const App = () => {
+            // 配置
+            const CSV_FILENAME = 'database.csv';
+
+            // 状态
+            const [data, setData] = useState([]);
+            const [searchTerm, setSearchTerm] = useState("");
+            const [filters, setFilters] = useState({ hasPdf: false, hasSib: false, hasFinale: false });
+            const [expandedId, setExpandedId] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [syncStatus, setSyncStatus] = useState("init"); // init, success, offline, error
+            const [lastUpdate, setLastUpdate] = useState("");
+
+            // 演示数据
+            const DEMO_DATA = [
+                { id: 101, title: "演示-春节序曲", composer: "李焕之", arranger: "", inventoryId: "CO-Demo01", location: "A1-1", scoreType: "总谱 分谱", hasPdf: true, hasSib: true, tags: "节日,喜庆,返场", remarks: "请连接 Gitee 或上传 database.csv 以加载真实数据" },
+                { id: 102, title: "演示-瑶族舞曲", composer: "刘铁山", arranger: "彭修文", inventoryId: "CO-Demo02", location: "B2-3", scoreType: "总谱", hasPdf: false, hasSib: false, tags: "经典", remarks: "" },
+            ];
+
+            // 初始化加载
+            useEffect(() => {
+                initData();
+            }, []);
+
+            const initData = async () => {
+                setLoading(true);
+                
+                // 1. 读取本地缓存
+                const cached = localStorage.getItem('musicLibData');
+                const time = localStorage.getItem('musicLibTime');
+                if (cached) {
+                    try {
+                        setData(JSON.parse(cached));
+                        setLastUpdate(time || "");
+                        setSyncStatus("offline"); // 暂时设为离线，等待网络更新
+                    } catch(e) {}
+                }
+
+                // 2. 尝试网络同步
+                try {
+                    // 防止本地预览时报错 (因为本地预览不支持 fetch 相对路径)
+                    if (window.location.protocol === 'file:') {
+                        throw new Error("LocalPreview");
+                    }
+
+                    const res = await fetch(`./${CSV_FILENAME}?t=${Date.now()}`);
+                    if (!res.ok) throw new Error("NetworkFail");
+                    
+                    const text = await res.text();
+                    const parsed = parseCSV(text);
+                    
+                    if (parsed.length > 0) {
+                        setData(parsed);
+                        setLastUpdate(new Date().toLocaleString());
+                        setSyncStatus("success");
+                        // 更新缓存
+                        localStorage.setItem('musicLibData', JSON.stringify(parsed));
+                        localStorage.setItem('musicLibTime', new Date().toLocaleString());
+                    }
+                } catch (err) {
+                    console.warn("同步失败或处于预览模式:", err);
+                    if (!cached) {
+                        // 如果没缓存也没网络，显示演示数据
+                        setData(DEMO_DATA);
+                        setSyncStatus("demo");
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // CSV 解析 (保持原有的强健逻辑)
+            const parseCSV = (text) => {
+                const lines = text.split('\n').filter(l => l.trim());
+                const result = [];
+                for (let i = 1; i < lines.length; i++) {
+                    let row = [];
+                    let inQuote = false;
+                    let current = '';
+                    for(let char of lines[i]) {
+                        if(char === '"') { inQuote = !inQuote; continue; }
+                        if(char === ',' && !inQuote) { row.push(current.trim()); current = ''; } 
+                        else { current += char; }
+                    }
+                    row.push(current.trim());
+                    
+                    if (row.length < 5) continue;
+                    
+                    // 映射栏位 (根据曲库.xlsx结构)
+                    result.push({
+                        id: i,
+                        title: row[1] || "未命名",
+                        form: row[2] || "",
+                        composer: row[3] || "",
+                        arranger: row[4] || row[5] || "",
+                        inventoryId: row[6] || "",
+                        location: row[7] || "",
+                        scoreType: row[8] || "",
+                        hasPdf: checkBool(row[9]),
+                        hasSib: checkBool(row[10]),
+                        hasFinale: checkBool(row[11]),
+                        remarks: row[16] || "",
+                        tags: row[17] || ""
+                    });
+                }
+                return result;
+            };
+
+            const checkBool = (str) => str && (str.includes('✓') || str.toLowerCase().includes('ok') || str.trim().length > 0);
+
+            // 手动导入
+            const handleImport = (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const parsed = parseCSV(evt.target.result);
+                    if(parsed.length > 0) {
+                        setData(parsed);
+                        setSyncStatus("manual");
+                        setLastUpdate(new Date().toLocaleString() + " (手动)");
+                        localStorage.setItem('musicLibData', JSON.stringify(parsed));
+                        alert(`成功导入 ${parsed.length} 条数据`);
+                    } else {
+                        alert("解析失败，请检查格式");
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            // 筛选逻辑
+            const filteredData = useMemo(() => {
+                return data.filter(item => {
+                    const searchContent = `${item.title} ${item.composer} ${item.arranger} ${item.inventoryId} ${item.tags}`.toLowerCase();
+                    const matchesSearch = searchContent.includes(searchTerm.toLowerCase());
+                    const matchesPdf = filters.hasPdf ? item.hasPdf : true;
+                    const matchesSib = filters.hasSib ? item.hasSib : true;
+                    const matchesFinale = filters.hasFinale ? item.hasFinale : true;
+                    return matchesSearch && matchesPdf && matchesSib && matchesFinale;
+                });
+            }, [data, searchTerm, filters]);
+
+            // 渲染状态标签
+            const renderStatus = () => {
+                switch(syncStatus) {
+                    case 'success': return <span className="flex items-center text-emerald-600 text-xs bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100"><span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>已同步云端</span>;
+                    case 'demo': return <span className="flex items-center text-amber-600 text-xs bg-amber-50 px-2 py-1 rounded-full border border-amber-100"><span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>演示模式</span>;
+                    case 'manual': return <span className="flex items-center text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded-full border border-blue-100"><span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>手动导入</span>;
+                    default: return <span className="flex items-center text-slate-400 text-xs bg-slate-100 px-2 py-1 rounded-full"><span className="w-2 h-2 rounded-full bg-slate-400 mr-1.5"></span>离线模式</span>;
+                }
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto pb-20">
+                    
+                    {/* --- 顶部导航 (Sticky) --- */}
+                    <header className="sticky top-0 z-30 glass-panel border-b border-slate-200 px-4 py-3 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-600 p-2 rounded-lg shadow-indigo-200 shadow-md">
+                                    <span className="text-white"><Icons.Database /></span>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold text-slate-800 leading-none">乐团谱务系统</h1>
+                                    <p className="text-[10px] text-slate-500 mt-1 font-mono">Ver 2.0 CN</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                {renderStatus()}
+                                <label className="text-xs text-indigo-600 cursor-pointer hover:underline">
+                                    导入CSV
+                                    <input type="file" className="hidden" accept=".csv" onChange={handleImport} />
+                                </label>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="px-4 py-6 space-y-6">
+                        
+                        {/* --- 搜索与过滤 --- */}
+                        <div className="space-y-4">
+                            {/* 搜索框 */}
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                    <Icons.Search />
+                                </div>
+                                <input
+                                    type="text"
+                                    className="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                                    placeholder="搜索曲名、作曲家、编号或标签..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            {/* 过滤按钮群 */}
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    onClick={() => setFilters({ ...filters, hasPdf: !filters.hasPdf })}
+                                    className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                                        filters.hasPdf 
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" 
+                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    <span className="mr-1.5"><Icons.FileText /></span>
+                                    PDF电子版
+                                    {filters.hasPdf && <span className="ml-1"><Icons.Check /></span>}
+                                </button>
+                                <button
+                                    onClick={() => setFilters({ ...filters, hasSib: !filters.hasSib })}
+                                    className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                                        filters.hasSib 
+                                        ? "bg-purple-50 text-purple-700 border-purple-200 shadow-sm" 
+                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    <span className="mr-1.5"><Icons.Music /></span>
+                                    Sibelius
+                                    {filters.hasSib && <span className="ml-1"><Icons.Check /></span>}
+                                </button>
+                                <button
+                                    onClick={() => setFilters({ ...filters, hasFinale: !filters.hasFinale })}
+                                    className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                                        filters.hasFinale
+                                        ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm" 
+                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    <span className="mr-1.5"><Icons.Music /></span>
+                                    Finale
+                                    {filters.hasFinale && <span className="ml-1"><Icons.Check /></span>}
+                                </button>
+                                <span className="ml-auto text-xs text-slate-400 self-center">
+                                    共 {filteredData.length} 条
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* --- 列表区域 --- */}
+                        <div className="space-y-3">
+                            {loading ? (
+                                <div className="text-center py-10 text-slate-400">
+                                    <div className="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full mb-2"></div>
+                                    <p className="text-xs">正在读取数据库...</p>
+                                </div>
+                            ) : filteredData.length === 0 ? (
+                                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-200">
+                                    <p className="text-slate-400 text-sm">没有找到相关乐谱</p>
+                                </div>
+                            ) : (
+                                filteredData.map(item => (
+                                    <Card key={item.id} className="overflow-hidden cursor-pointer" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
+                                        <div className="p-4 flex gap-4 items-start relative">
+                                            {/* 左侧状态条 */}
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.hasPdf ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+                                            
+                                            {/* 编号区块 */}
+                                            <div className="flex-shrink-0 pt-0.5">
+                                                <div className="w-12 h-12 rounded-lg bg-slate-100 text-slate-600 flex flex-col items-center justify-center border border-slate-200">
+                                                    <span className="text-[10px] font-mono text-slate-400 uppercase">No.</span>
+                                                    <span className="text-sm font-bold font-mono">
+                                                        {item.inventoryId.split('-')[1]?.substring(0,2) || '..'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* 主要内容 */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-bold text-slate-900 text-lg truncate pr-2">{item.title}</h3>
+                                                    <span className="text-slate-300">
+                                                        {expandedId === item.id ? <Icons.ChevronUp/> : <Icons.ChevronDown/>}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="text-sm text-slate-600 mt-0.5 flex items-center gap-2">
+                                                    <span>{item.composer || "未知作曲"}</span>
+                                                    {item.arranger && <span className="text-slate-400 text-xs px-1 border-l border-slate-300">编: {item.arranger}</span>}
+                                                </div>
+
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    {item.form && <Badge type="default">{item.form}</Badge>}
+                                                    {item.hasPdf && <Badge type="success" icon={Icons.FileText}>PDF</Badge>}
+                                                    {item.hasSib && <Badge type="purple" icon={Icons.Music}>Sib</Badge>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 展开详情 */}
+                                        {expandedId === item.id && (
+                                            <div className="bg-slate-50 border-t border-slate-100 px-4 py-4 animate-fadeIn">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="col-span-2 sm:col-span-1 space-y-3">
+                                                        <div>
+                                                            <div className="text-xs font-semibold text-slate-400 uppercase mb-1">库存位置</div>
+                                                            <div className="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 shadow-sm">
+                                                                <span className="text-indigo-500"><Icons.Folder /></span>
+                                                                <span className="font-mono font-bold text-lg text-slate-700">{item.location || "未记录"}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-xs font-semibold text-slate-400 uppercase mb-1">库存编号</div>
+                                                            <div className="font-mono text-sm text-slate-700 select-all">{item.inventoryId}</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="col-span-2 sm:col-span-1 space-y-2">
+                                                        <div className="text-xs font-semibold text-slate-400 uppercase mb-1">档案状态</div>
+                                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                                            <div className={`p-1.5 rounded text-xs border ${item.hasPdf ? 'bg-emerald-100 border-emerald-200 text-emerald-800 font-bold' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>PDF</div>
+                                                            <div className={`p-1.5 rounded text-xs border ${item.hasSib ? 'bg-purple-100 border-purple-200 text-purple-800 font-bold' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>Sib</div>
+                                                            <div className={`p-1.5 rounded text-xs border ${item.hasFinale ? 'bg-blue-100 border-blue-200 text-blue-800 font-bold' : 'bg-slate-100 border-slate-200 text-slate-400'}`}>Fin</div>
+                                                        </div>
+                                                        <div className="flex justify-between text-xs pt-1 border-t border-slate-200 mt-2">
+                                                            <span className="text-slate-500">谱种:</span>
+                                                            <span className="font-medium">{item.scoreType || "-"}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {(item.tags || item.remarks) && (
+                                                        <div className="col-span-2 pt-2 border-t border-slate-200 mt-1">
+                                                            {item.tags && (
+                                                                <div className="flex flex-wrap gap-1 mb-2">
+                                                                    {item.tags.split(/,|，/).map((tag, idx) => (
+                                                                        <span key={idx} className="flex items-center px-1.5 py-0.5 rounded text-[10px] bg-slate-200 text-slate-600">
+                                                                            <span className="mr-1 opacity-50"><Icons.Tag /></span>{tag.trim()}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            {item.remarks && (
+                                                                <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-100">
+                                                                    <span className="mt-0.5 shrink-0"><Icons.Alert /></span>
+                                                                    <span>{item.remarks}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+
+                        {/* 底部信息 */}
+                        <div className="text-center text-[10px] text-slate-400 pb-4">
+                             {lastUpdate && <p>数据更新于: {lastUpdate}</p>}
+                             <p className="mt-1">Powered by React & Tailwind (China CDN)</p>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
