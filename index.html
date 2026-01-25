@@ -28,21 +28,21 @@
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-icon { 
             background: #4f46e5; color: white; 
-            width: 36px; height: 36px; border-radius: 8px; 
+            width: 40px; height: 40px; border-radius: 10px; 
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
         .brand-text h1 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; line-height: 1.2; }
         .brand-text p { margin: 0; font-size: 11px; color: #64748b; font-family: monospace; }
 
-        /* --- 状态标签 --- */
-        .status-badge { 
-            font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500;
-            display: flex; align-items: center; gap: 4px;
+        /* --- 顶部状态栏 --- */
+        .top-status { 
+            font-size: 11px; color: #64748b; 
+            display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
         }
-        .status-badge.online { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-        .status-badge.offline { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-        .status-badge.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .update-time { font-weight: 500; color: #4f46e5; }
+        .status-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .status-dot.offline { background: #94a3b8; }
 
         /* --- 搜索区 --- */
         .search-section { margin: 20px 0; }
@@ -62,16 +62,17 @@
             font-weight: 500; outline: none;
         }
 
-        /* --- 类型过滤区 (分组显示) --- */
+        /* --- 类型过滤区 --- */
         .filter-section { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
-        .filter-group { margin-bottom: 10px; }
+        .filter-group { margin-bottom: 12px; }
         .filter-group:last-child { margin-bottom: 0; }
-        .filter-label { font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-label { font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+        
         .filter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
         
         .filter-btn { 
             background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; 
-            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; 
+            padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; 
             cursor: pointer; transition: all 0.1s;
         }
         .filter-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
@@ -93,14 +94,23 @@
         .status-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: transparent; }
         .status-bar.active { background: #10b981; }
 
+        /* 智能编号盒 */
         .idx-box { 
-            flex-shrink: 0; width: 64px; height: 56px; 
+            flex-shrink: 0; width: 68px; height: 60px; 
             background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #64748b; padding: 2px;
+            color: #64748b; overflow: hidden;
         }
-        .idx-label { font-size: 10px; font-weight: 400; color: #94a3b8; margin-bottom: 2px; }
-        .idx-val { font-size: 12px; font-weight: 700; color: #334155; text-align: center; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .idx-type { 
+            font-size: 12px; font-weight: 700; color: #4f46e5; 
+            text-align: center; width: 100%; padding: 2px 0;
+            background: #eef2ff; border-bottom: 1px solid #e2e8f0;
+        }
+        .idx-num { 
+            font-size: 14px; font-weight: 700; color: #334155; 
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            font-family: monospace; letter-spacing: -0.5px;
+        }
 
         .card-info { flex: 1; min-width: 0; }
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -113,15 +123,15 @@
         .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
         .badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid; font-weight: 600; display: flex; align-items: center; gap: 3px; letter-spacing: 0.5px; }
         
-        /* 档案状态颜色定义 */
-        .b-pdf { background: #fef2f2; border-color: #fecaca; color: #991b1b; } /* PDF: 红 */
-        .b-sib { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; } /* SIB: 紫 */
-        .b-mus { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; } /* MUS: 蓝 */
-        .b-enc { background: #fffbeb; border-color: #fde68a; color: #92400e; } /* ENC: 黄 */
-        .b-midi { background: #fff7ed; border-color: #fed7aa; color: #9a3412; } /* MIDI: 橙 */
-        .b-rec { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; } /* 录音: 青 */
-        .b-vid { background: #fdf2f8; border-color: #fbcfe8; color: #be185d; } /* 视频: 粉 */
-        .b-paper { background: #f1f5f9; border-color: #e2e8f0; color: #64748b; font-style: italic; } /* 仅纸质 */
+        /* 档案状态颜色定义 (用户指定) */
+        .b-pdf { background: #fef2f2; border-color: #fecaca; color: #991b1b; } /* PDF: 淡红 */
+        .b-sib { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; } /* SIB: 淡紫 */
+        .b-mus { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; } /* MUS: 淡蓝 */
+        .b-enc { background: #fefce8; border-color: #fef08a; color: #854d0e; } /* ENC: 淡黄 */
+        .b-midi { background: #fff7ed; border-color: #fed7aa; color: #9a3412; } /* MIDI: 淡橙 */
+        .b-rec { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; } /* 录音: 淡青 */
+        .b-vid { background: #fdf2f8; border-color: #fbcfe8; color: #be185d; } /* 视频: 淡粉 */
+        .b-paper { background: #f1f5f9; border-color: #e2e8f0; color: #94a3b8; font-style: italic; } /* 仅纸质: 灰 */
 
         /* --- 详情面板 --- */
         .detail-panel { 
@@ -162,14 +172,20 @@
             <div class="brand">
                 <div class="brand-icon">
                     <!-- Icon: Star -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </div>
                 <div class="brand-text">
                     <h1>星之海乐谱查询系统</h1>
                     <p>Star Ocean Library</p>
                 </div>
             </div>
-            <div id="statusArea"></div>
+            <!-- 顶部动态时间 -->
+            <div class="top-status">
+                <div id="lastUpdateDisplay" class="update-time">--/--/-- --:--</div>
+                <div id="statusDotDisplay" style="display:flex;align-items:center;">
+                    <span class="status-dot"></span><span id="statusText">已连接</span>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -190,22 +206,17 @@
                 </select>
             </div>
             
-            <!-- 分组筛选器 -->
+            <!-- 分组筛选器 (更新为用户指定列表) -->
             <div class="filter-section">
-                <!-- 独奏/乐器 (用户指定顺序) -->
-                <div class="filter-group">
-                    <div class="filter-label">乐器 / 独奏</div>
-                    <div class="filter-tags" id="filterGroupSolo">
-                        <!-- JS 动态生成 -->
-                    </div>
-                </div>
-                <div style="height:1px; background:#f1f5f9; margin:10px 0;"></div>
                 <!-- 合奏/乐团 -->
                 <div class="filter-group">
                     <div class="filter-label">合奏 / 乐团</div>
-                    <div class="filter-tags" id="filterGroupEnsemble">
-                        <!-- JS 动态生成 -->
-                    </div>
+                    <div class="filter-tags" id="filterGroupEnsemble"></div>
+                </div>
+                <!-- 独奏/乐器 -->
+                <div class="filter-group">
+                    <div class="filter-label">乐器 / 独奏</div>
+                    <div class="filter-tags" id="filterGroupSolo"></div>
                 </div>
                 <div id="resultCount" class="count-text">加载中...</div>
             </div>
@@ -215,8 +226,7 @@
         <div id="listContainer" class="list-container"></div>
 
         <footer>
-            <p id="updateTime">数据同步中...</p>
-            <p style="margin-top: 4px;">星之海乐团内部使用 • 数据由管理员维护</p>
+            <p>星之海乐团内部使用 • 数据由管理员维护</p>
         </footer>
     </main>
 
@@ -224,35 +234,41 @@
         // --- 系统配置 ---
         const CONFIG = {
             csvFile: 'database.csv',
-            version: '9.0'
+            version: '10.0'
         };
 
-        // --- 完整类型映射表 (用户指定顺序) ---
+        // --- 完整类型映射表 (严格按照用户图片顺序) ---
         const TYPE_GROUPS = {
-            solo: [
-                { code: 'ZD', name: '竹笛' }, { code: 'SH', name: '笙' },
-                { code: 'SN', name: '唢呐' }, { code: 'LQ', name: '柳琴' },
-                { code: 'YQ', name: '扬琴' }, { code: 'PP', name: '琵琶' }, 
-                { code: 'XR', name: '小阮' }, { code: 'ZR', name: '中阮' },
-                { code: 'DR', name: '大阮' }, { code: 'GZ', name: '古筝' },
-                { code: 'DJ', name: '打击乐' }, { code: 'GH', name: '高胡' },
-                { code: 'EH', name: '二胡' }, { code: 'XO', name: '箫' },
-                { code: 'HL', name: '葫芦丝' }, { code: 'KD', name: '口笛' },
-                { code: 'SX', name: '三弦' }, { code: 'JH', name: '京胡' },
-                { code: 'YH', name: '椰胡' }, { code: 'MC', name: '多乐器协奏' },
-                { code: 'PN', name: '钢琴' }, { code: 'VN', name: '小提琴' },
-                { code: 'VA', name: '中提琴' }, { code: 'VC', name: '大提琴' },
-                { code: 'CB', name: '低音提琴' }, { code: 'VO', name: '声乐、歌曲' },
-                { code: 'EO', name: '电子管风琴' }, { code: 'ME', name: '口风琴' }
-            ],
             ensemble: [
                 { code: 'CO', name: '民乐团' }, { code: 'WB', name: '管乐团' },
                 { code: 'OC', name: '交响乐' }, { code: 'CM', name: '室内乐' },
-                { code: 'CH', name: '合唱' }, { code: 'SS', name: '丝弦乐' }, 
-                { code: 'PS', name: '弹拨乐' }, { code: 'WP', name: '吹打乐' }, 
-                { code: 'PE', name: '打击乐团' }, { code: 'CW', name: '中国管乐' }, 
-                { code: 'CS', name: '弓弦乐' }, { code: 'SO', name: '弦乐团' }, 
+                { code: 'SS', name: '丝弦乐' }, { code: 'PS', name: '弹拨乐' },
+                { code: 'WP', name: '吹打乐' }, { code: 'PE', name: '打击乐团' },
+                { code: 'CW', name: '中国管乐'}, { code: 'CS', name: '弓弦乐' },
+                { code: 'CH', name: '合唱' },   { code: 'SO', name: '弦乐团' },
                 { code: 'CT', name: '粤曲' }
+            ],
+            solo: [
+                { code: 'ZD', name: '竹笛' }, { code: 'PN', name: '钢琴' },
+                { code: 'SH', name: '笙' },   { code: 'VN', name: '小提琴' },
+                { code: 'SN', name: '唢呐' }, { code: 'VA', name: '中提琴' },
+                { code: 'LQ', name: '柳琴' }, { code: 'VC', name: '大提琴' },
+                { code: 'YQ', name: '扬琴' }, { code: 'CB', name: '低音提琴' },
+                { code: 'PP', name: '琵琶' }, { code: 'VO', name: '声乐、歌曲' },
+                { code: 'XR', name: '小阮' }, { code: 'EO', name: '电子管风琴' },
+                { code: 'ZR', name: '中阮' }, { code: 'ME', name: '口风琴' },
+                { code: 'DR', name: '大阮' }, 
+                { code: 'GZ', name: '古筝' }, 
+                { code: 'DJ', name: '打击乐' },
+                { code: 'GH', name: '高胡' },
+                { code: 'EH', name: '二胡' },
+                { code: 'XO', name: '箫' },
+                { code: 'HL', name: '葫芦丝' },
+                { code: 'KD', name: '口笛' },
+                { code: 'SX', name: '三弦' },
+                { code: 'JH', name: '京胡' },
+                { code: 'YH', name: '椰胡' },
+                { code: 'MC', name: '多乐器协奏' }
             ]
         };
 
@@ -307,10 +323,23 @@
             });
         }
 
+        // --- 格式化时间 (2026/1/25 11:43 pm) ---
+        function formatCustomDate(date) {
+            const y = date.getFullYear();
+            const m = date.getMonth() + 1;
+            const d = date.getDate();
+            let h = date.getHours();
+            const min = date.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'pm' : 'am';
+            h = h % 12;
+            h = h ? h : 12;
+            return `${y}/${m}/${d} ${h}:${min} ${ampm}`;
+        }
+
         // --- 数据加载逻辑 ---
         async function initData() {
-            const cachedData = localStorage.getItem('musicLib_v9_data');
-            const cachedTime = localStorage.getItem('musicLib_v9_time');
+            const cachedData = localStorage.getItem('musicLib_v10_data');
+            const cachedTime = localStorage.getItem('musicLib_v10_time');
             
             if (cachedData) {
                 try {
@@ -332,10 +361,11 @@
                 
                 if (parsed.length > 0) {
                     appState.data = parsed;
-                    const now = new Date().toLocaleString('zh-CN', { hour12: false });
+                    // 使用自定义时间格式
+                    const now = formatCustomDate(new Date());
                     
-                    localStorage.setItem('musicLib_v9_data', JSON.stringify(parsed));
-                    localStorage.setItem('musicLib_v9_time', now);
+                    localStorage.setItem('musicLib_v10_data', JSON.stringify(parsed));
+                    localStorage.setItem('musicLib_v10_time', now);
                     
                     updateUIStatus('online', now);
                     renderList();
@@ -392,9 +422,11 @@
             container.innerHTML = filtered.map(item => {
                 const isExpanded = appState.expandedId === item.id;
                 
-                // 类型识别
+                // 类型识别 (CO, ZD)
                 const typeCode = item.inventoryId.split('-')[0]?.substring(0,2).toUpperCase() || '..';
                 const typeName = TYPE_MAP[typeCode] || typeCode;
+                // 编号后缀 (001)
+                const idSuffix = item.inventoryId.split('-')[1] || item.inventoryId;
 
                 // 详情区块
                 const detailHtml = isExpanded ? `
@@ -460,8 +492,8 @@
                             <div class="status-bar ${item.hasPdf ? 'active' : ''}"></div>
                             
                             <div class="idx-box">
-                                <div class="idx-label">类型</div>
-                                <div class="idx-val">${typeName}</div>
+                                <div class="idx-type">${typeName}</div>
+                                <div class="idx-num">${idSuffix}</div>
                             </div>
                             
                             <div class="card-info">
@@ -507,18 +539,21 @@
         }
 
         function updateUIStatus(status, timeStr) {
-            const el = document.getElementById('statusArea');
-            const timeEl = document.getElementById('updateTime');
+            const timeEl = document.getElementById('lastUpdateDisplay');
+            const dotEl = document.querySelector('.status-dot');
+            const textEl = document.getElementById('statusText');
             
+            timeEl.innerText = "最后更新：" + timeStr;
+
             if (status === 'online') {
-                el.innerHTML = `<div class="status-badge online"><span style="width:6px;height:6px;background:#059669;border-radius:50%"></span>已同步</div>`;
-                timeEl.innerText = "数据更新于: " + timeStr;
+                dotEl.className = 'status-dot';
+                textEl.innerText = '已同步';
             } else if (status === 'offline') {
-                el.innerHTML = `<div class="status-badge offline"><span style="width:6px;height:6px;background:#94a3b8;border-radius:50%"></span>离线</div>`;
-                timeEl.innerText = "上次更新: " + timeStr + " (使用缓存)";
+                dotEl.className = 'status-dot offline';
+                textEl.innerText = '使用缓存';
             } else {
-                el.innerHTML = `<div class="status-badge error">连接失败</div>`;
-                timeEl.innerText = "无法连接数据库";
+                dotEl.className = 'status-dot offline';
+                textEl.innerText = '未连接';
             }
         }
 
