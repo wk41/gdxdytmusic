@@ -234,10 +234,10 @@
         // --- 系统配置 ---
         const CONFIG = {
             csvFile: 'database.csv',
-            version: '10.0'
+            version: '10.1'
         };
 
-        // --- 完整类型映射表 (严格按照用户图片顺序) ---
+        // --- 完整类型映射表 ---
         const TYPE_GROUPS = {
             ensemble: [
                 { code: 'CO', name: '民乐团' }, { code: 'WB', name: '管乐团' },
@@ -323,7 +323,7 @@
             });
         }
 
-        // --- 格式化时间 (2026/1/25 11:43 pm) ---
+        // --- 格式化时间 ---
         function formatCustomDate(date) {
             const y = date.getFullYear();
             const m = date.getMonth() + 1;
@@ -344,7 +344,7 @@
             if (cachedData) {
                 try {
                     appState.data = JSON.parse(cachedData);
-                    updateUIStatus('offline', cachedTime);
+                    updateUIStatus('offline', cachedTime || "未知");
                     renderList();
                     document.getElementById('loader').style.display = 'none';
                 } catch(e) {}
@@ -356,18 +356,21 @@
                 const res = await fetch(`./${CONFIG.csvFile}?t=${Date.now()}`);
                 if (!res.ok) throw new Error("NetworkFail");
                 
+                // 获取服务器 Last-Modified 时间
+                const lastMod = res.headers.get('Last-Modified');
+                const fileDate = lastMod ? new Date(lastMod) : new Date();
+                const timeStr = formatCustomDate(fileDate);
+
                 const text = await res.text();
                 const parsed = parseCSV(text);
                 
                 if (parsed.length > 0) {
                     appState.data = parsed;
-                    // 使用自定义时间格式
-                    const now = formatCustomDate(new Date());
                     
                     localStorage.setItem('musicLib_v10_data', JSON.stringify(parsed));
-                    localStorage.setItem('musicLib_v10_time', now);
+                    localStorage.setItem('musicLib_v10_time', timeStr);
                     
-                    updateUIStatus('online', now);
+                    updateUIStatus('online', timeStr);
                     renderList();
                 }
             } catch (err) {
